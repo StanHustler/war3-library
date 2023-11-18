@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
-import ViewLoader from "./components/ViewLoader.vue";
+import ViewLoader from "./components/ColorChanger.vue";
 </script>
 
 <template>

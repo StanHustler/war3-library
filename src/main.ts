@@ -1,10 +1,13 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import "./style.css"
 import App from './App.vue'
 import './samples/node-api'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 createApp(App)
-  .mount('#app')
-  .$nextTick(() => {
-    postMessage({ payload: 'removeLoading' }, '*')
-  })
+    .use(ElementPlus)
+    .mount('#app')
+    .$nextTick(() => {
+        postMessage({payload: 'removeLoading'}, '*')
+    })
