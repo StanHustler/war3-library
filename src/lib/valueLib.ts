@@ -26,9 +26,10 @@ export class ValueLib {
 
     static colorRgb2FA = (rgb: string) => {
         let arr = rgb.slice(4, -1).split(",");
-        return this.colorIA2FA(arr.map((n) => {
+        let res = this.colorIA2FA(arr.map((n) => {
             return parseInt(n);
         }));
+        return Float32Array.from(res);
     }
 
 }

@@ -12,7 +12,10 @@ let fileDir
 
 let model
 let nodeProperty = ref();
+let geoProperty = ref();
+
 let idxMapper = new Map()
+let pageSelect = ref("0")
 
 let openDialog = ref(false)
 let radio = ref()
@@ -23,9 +26,7 @@ const clr = ['C0', 'C1', 'C2']
 
 const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
     filePath = rawFile.path
-    console.log(filePath)
     fileDir = filePath.slice(0,filePath.length - rawFile.name.length)
-    console.log(fileDir)
     function readMDX(){
         fs.readFile(filePath, (err, data) => {
             if (err) {
@@ -50,6 +51,13 @@ const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
                 }
             }
             nodeProperty.value = res
+            idx = 0
+            geoProperty.value = model.GeosetAnims.map((row)=>{
+                return {
+                    "idx": idx++,
+                    "Color" : ValueLib.colorFA2Rgb(row.Color),
+                }
+            })
         })
 
     }
@@ -60,7 +68,6 @@ const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 const onClick = () => {
-    console.log(nodeProperty.value)
     for (let i of nodeProperty.value) {
         let node = model.Nodes[i.idx]
         let rgba0 = ValueLib.colorRgb2FA(i.C0)
@@ -68,6 +75,11 @@ const onClick = () => {
         let rgba2 = ValueLib.colorRgb2FA(i.C2)
         node.SegmentColor= [rgba0, rgba1, rgba2]
     }
+
+    for (let j of geoProperty.value) {
+        model.GeosetAnims[j.idx].Color = ValueLib.colorRgb2FA(j.Color)
+    }
+
     let res = generateMDX(model)
     fs.writeFile(fileDir + 'res.mdx', Buffer.from(res), (err) => {
         if (err) {
@@ -120,9 +132,15 @@ const confirm = () => {
 
 <template>
     <div  v-if="nodeProperty">
-        <el-table style="width: 100%" :data="nodeProperty">
-            <el-table-column prop="Name" label="Name"/>
-            <el-table-column prop="SegmentColor" label="SegmentColor" >
+
+        <el-radio-group v-model="pageSelect">
+            <el-radio-button label="0"> 模型节点颜色管理 </el-radio-button>
+            <el-radio-button label="1"> 多边形动画颜色管理 </el-radio-button>
+        </el-radio-group>
+
+        <el-table style="width: 100%" :data="nodeProperty" v-if="pageSelect==='0'">
+            <el-table-column prop="Name" label="节点名称"/>
+            <el-table-column prop="SegmentColor" label="颜色" >
                 <template #default="scope">
                     <div class="box-container">
                         <el-color-picker v-model="scope.row.C0" color-format="rgb"/>
@@ -132,6 +150,18 @@ const confirm = () => {
                 </template>
             </el-table-column>
         </el-table>
+
+        <el-table style="width: 100%" :data="geoProperty" v-else>
+            <el-table-column prop="idx" label="序号"/>
+            <el-table-column prop="Color" label="颜色">
+                <template #default="scope">
+                    <div class="box-container">
+                        <el-color-picker v-model="scope.row.Color" color-format="rgb"/>
+                    </div>
+                </template>
+            </el-table-column>
+        </el-table>
+
         <el-button @click="batchEdit">批量修改</el-button>
         <el-button @click="onClick">导出模型</el-button>
     </div>
