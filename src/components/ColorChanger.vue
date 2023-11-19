@@ -5,11 +5,19 @@ import {parseMDL, generateMDL, ModelRenderer, parseMDX, generateMDX} from 'war3-
 import {defineComponent, onMounted, ref} from "vue";
     import * as fs from "fs";
 import {ValueLib} from "../lib/valueLib";
-import {ElMessageBox} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 
 let model
 let mdxProperty = ref();
-let filterWhiteData = ref(false)
+let idxMapper = new Map()
+
+let openDialog = ref(false)
+let radio = ref()
+let groupProperty = ref()
+let color = ref()
+
+const clr = ['C0', 'C1', 'C2']
+
 function readMDX(){
 
     const filePath = '/Users/stan/Desktop/暗影/暗影 暗影尖刺/[TX][JN]AY-AYJC.mdx';
@@ -33,6 +41,7 @@ function readMDX(){
                     "C1": ValueLib.colorFA2Rgba(i.SegmentColor[1], i.Alpha[1]),
                     "C2": ValueLib.colorFA2Rgba(i.SegmentColor[2], i.Alpha[2]),
                 })
+                idxMapper[idx] = res.length -1
             }
         }
         mdxProperty.value = res
@@ -66,11 +75,42 @@ const onClick = () => {
 
 }
 
+const batchEdit = () =>{
+
+    let res = new Map()
+
+    openDialog.value=true
+    for (let i of mdxProperty.value) {
+        for (const c of clr) {
+            if (res.has(i[c])) {
+                res.get(i[c]).push([i.idx, clr.indexOf(c)]);
+            } else {
+                res.set(i[c], [[i.idx, clr.indexOf(c)]]);
+            }
+        }
+    }
+
+    groupProperty.value = res
+}
+
+const confirm = () => {
+    if (!radio.value) {
+        ElMessage.error('请先选择被修改项')
+        return
+    }
+
+
+    for (let i of groupProperty.value.get(radio.value)) {
+        mdxProperty.value[idxMapper[i[0]]][clr[i[1]]] = color.value
+    }
+
+    openDialog.value=false
+}
+
 </script>
 
 <template>
     <div  v-if="mdxProperty">
-        <el-switch v-model="filterWhiteData"/>
         <el-table style="width: 100%" :data="mdxProperty">
             <el-table-column prop="Name" label="Name" width="140" />
             <el-table-column prop="SegmentColor" label="SegmentColor" width="180" >
@@ -83,9 +123,27 @@ const onClick = () => {
                 </template>
             </el-table-column>
         </el-table>
-        <el-button @click="onClick">Default</el-button>
+        <el-button @click="batchEdit">批量修改</el-button>
+        <el-button @click="onClick">导出模型</el-button>
     </div>
     <button @click="readMDX" v-else>读取模型</button>
+
+    <el-dialog title="批量修改" v-model="openDialog" fullscreen>
+        <el-radio-group v-model="radio">
+            <el-radio :label="data[0]" v-for="data in groupProperty">
+                <el-color-picker show-alpha v-model="data[0]"/>
+                X {{data[1].length}}
+            </el-radio>
+        </el-radio-group>
+
+        <el-divider />
+
+        <el-color-picker show-alpha v-model="color"/>
+
+        <template #footer>
+            <el-button type="primary" @click="confirm">确 定</el-button>
+        </template>
+    </el-dialog>
 </template>
 
 <style scoped>
