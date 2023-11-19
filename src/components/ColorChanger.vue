@@ -18,7 +18,7 @@ let idxMapper = new Map()
 let pageSelect = ref("0")
 
 let openDialog = ref(false)
-let radio = ref()
+
 let groupProperty = ref()
 let color = ref()
 
@@ -110,19 +110,28 @@ const batchEdit = () =>{
             }
         }
     }
+    for (let i of geoProperty.value) {
+        if (res.has(i.Color)) {
+            res.get(i.Color).push([i.idx]);
+        } else {
+            res.set(i.Color, [[i.idx]]);
+        }
+    }
 
-    groupProperty.value = res
+    groupProperty.value = Array.from(res)
 }
 
 const confirm = () => {
-    if (!radio.value) {
-        ElMessage.error('请先选择被修改项')
-        return
-    }
+    console.log(groupProperty.value)
 
-
-    for (let i of groupProperty.value.get(radio.value)) {
-        nodeProperty.value[idxMapper[i[0]]][clr[i[1]]] = color.value
+    for (let [color, posArr] of groupProperty.value) {
+        for (let a of posArr){
+            if (a.length === 2) {
+                nodeProperty.value[idxMapper[a[0]]][clr[a[1]]] = color
+            } else {
+                geoProperty.value[a[0]].Color = color
+            }
+        }
     }
 
     openDialog.value=false
@@ -177,16 +186,12 @@ const confirm = () => {
     </el-upload>
 
     <el-dialog title="批量修改" v-model="openDialog" fullscreen>
-        <el-radio-group v-model="radio">
-            <el-radio :label="data[0]" v-for="data in groupProperty">
-                <el-color-picker show-alpha v-model="data[0]"/>
-                X {{data[1].length}}
-            </el-radio>
-        </el-radio-group>
+        <div v-for="(item, index) in groupProperty" :key="index">
+            <el-badge :value="item[1].length">
+                <el-color-picker color-format="rgb" v-model="item[0]" size="large"/>
 
-        <el-divider />
-
-        <el-color-picker v-model="color" color-format="rgb"/>
+            </el-badge>
+        </div>
 
         <template #footer>
             <el-button type="primary" @click="confirm">确 定</el-button>
@@ -201,5 +206,4 @@ const confirm = () => {
         justify-content: space-around;
     }
 
-    .el-color-picker__color-inner{  border-radius: 50px;}
 </style>
