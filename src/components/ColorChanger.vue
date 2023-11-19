@@ -8,6 +8,7 @@ import {ValueLib} from "../lib/valueLib";
 import {ElMessage, ElMessageBox, UploadProps} from "element-plus";
 
 let filePath
+let fileDir
 
 let model
 let mdxProperty = ref();
@@ -20,15 +21,11 @@ let color = ref()
 
 const clr = ['C0', 'C1', 'C2']
 
-
-const fileDir = () => {
-    let arr = filePath.split('/')
-    arr.pop()
-    return arr.join('/')
-}
 const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
     filePath = rawFile.path
     console.log(filePath)
+    fileDir = filePath.slice(0,filePath.length - rawFile.name.length)
+    console.log(fileDir)
     function readMDX(){
         fs.readFile(filePath, (err, data) => {
             if (err) {
@@ -73,7 +70,7 @@ const onClick = () => {
         node.Alpha = [rgba0.a, rgba1.a, rgba2.a]
     }
     let res = generateMDX(model)
-    fs.writeFile(filePath + 'res.mdx', Buffer.from(res), (err) => {
+    fs.writeFile(fileDir + 'res.mdx', Buffer.from(res), (err) => {
         if (err) {
             console.error(err);
             return;
