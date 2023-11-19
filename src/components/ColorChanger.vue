@@ -125,8 +125,8 @@ const confirm = () => {
 <template>
     <div  v-if="mdxProperty">
         <el-table style="width: 100%" :data="mdxProperty">
-            <el-table-column prop="Name" label="Name" width="140" />
-            <el-table-column prop="SegmentColor" label="SegmentColor" width="180" >
+            <el-table-column prop="Name" label="Name"/>
+            <el-table-column prop="SegmentColor" label="SegmentColor" >
                 <template #default="scope">
                     <div class="box-container">
                         <el-color-picker show-alpha v-model="scope.row.C0"/>
@@ -140,7 +140,7 @@ const confirm = () => {
         <el-button @click="onClick">导出模型</el-button>
     </div>
     <el-upload :before-upload="handleUpload" drag v-else>
-        <div class="el-upload__text">
+        <div class="el-upload__text" style="height: 300px;display: flex;justify-content:center;align-items:center;">
             拖入文件 或者 <em>点击选择</em>
         </div>
         <template #tip>
@@ -172,6 +172,6 @@ const confirm = () => {
     .box-container {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: space-around;
     }
 </style>
