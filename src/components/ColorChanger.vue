@@ -11,7 +11,7 @@ let filePath
 let fileDir
 
 let model
-let mdxProperty = ref();
+let nodeProperty = ref();
 let idxMapper = new Map()
 
 let openDialog = ref(false)
@@ -42,14 +42,14 @@ const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
                     res.push({
                         "idx": idx,
                         "Name": i.Name,
-                        "C0": ValueLib.colorFA2Rgba(i.SegmentColor[0], i.Alpha[0]),
-                        "C1": ValueLib.colorFA2Rgba(i.SegmentColor[1], i.Alpha[1]),
-                        "C2": ValueLib.colorFA2Rgba(i.SegmentColor[2], i.Alpha[2]),
+                        "C0": ValueLib.colorFA2Rgb(i.SegmentColor[0]),
+                        "C1": ValueLib.colorFA2Rgb(i.SegmentColor[1]),
+                        "C2": ValueLib.colorFA2Rgb(i.SegmentColor[2]),
                     })
                     idxMapper[idx] = res.length -1
                 }
             }
-            mdxProperty.value = res
+            nodeProperty.value = res
         })
 
     }
@@ -60,14 +60,13 @@ const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
 }
 
 const onClick = () => {
-    console.log(mdxProperty.value)
-    for (let i of mdxProperty.value) {
+    console.log(nodeProperty.value)
+    for (let i of nodeProperty.value) {
         let node = model.Nodes[i.idx]
-        let rgba0 = ValueLib.rgba2Ar(i.C0)
-        let rgba1 = ValueLib.rgba2Ar(i.C1)
-        let rgba2 = ValueLib.rgba2Ar(i.C2)
-        node.SegmentColor= [rgba0.rgb, rgba1.rgb, rgba2.rgb]
-        node.Alpha = [rgba0.a, rgba1.a, rgba2.a]
+        let rgba0 = ValueLib.colorRgb2FA(i.C0)
+        let rgba1 = ValueLib.colorRgb2FA(i.C1)
+        let rgba2 = ValueLib.colorRgb2FA(i.C2)
+        node.SegmentColor= [rgba0, rgba1, rgba2]
     }
     let res = generateMDX(model)
     fs.writeFile(fileDir + 'res.mdx', Buffer.from(res), (err) => {
@@ -90,7 +89,7 @@ const batchEdit = () =>{
     let res = new Map()
 
     openDialog.value=true
-    for (let i of mdxProperty.value) {
+    for (let i of nodeProperty.value) {
         for (const c of clr) {
             if (res.has(i[c])) {
                 res.get(i[c]).push([i.idx, clr.indexOf(c)]);
@@ -111,7 +110,7 @@ const confirm = () => {
 
 
     for (let i of groupProperty.value.get(radio.value)) {
-        mdxProperty.value[idxMapper[i[0]]][clr[i[1]]] = color.value
+        nodeProperty.value[idxMapper[i[0]]][clr[i[1]]] = color.value
     }
 
     openDialog.value=false
@@ -120,15 +119,15 @@ const confirm = () => {
 </script>
 
 <template>
-    <div  v-if="mdxProperty">
-        <el-table style="width: 100%" :data="mdxProperty">
+    <div  v-if="nodeProperty">
+        <el-table style="width: 100%" :data="nodeProperty">
             <el-table-column prop="Name" label="Name"/>
             <el-table-column prop="SegmentColor" label="SegmentColor" >
                 <template #default="scope">
                     <div class="box-container">
-                        <el-color-picker show-alpha v-model="scope.row.C0"/>
-                        <el-color-picker show-alpha v-model="scope.row.C1"/>
-                        <el-color-picker show-alpha v-model="scope.row.C2"/>
+                        <el-color-picker v-model="scope.row.C0" color-format="rgb"/>
+                        <el-color-picker v-model="scope.row.C1" color-format="rgb"/>
+                        <el-color-picker v-model="scope.row.C2" color-format="rgb"/>
                     </div>
                 </template>
             </el-table-column>
@@ -157,7 +156,7 @@ const confirm = () => {
 
         <el-divider />
 
-        <el-color-picker show-alpha v-model="color"/>
+        <el-color-picker v-model="color" color-format="rgb"/>
 
         <template #footer>
             <el-button type="primary" @click="confirm">确 定</el-button>
@@ -171,4 +170,6 @@ const confirm = () => {
         flex-direction: row;
         justify-content: space-around;
     }
+
+    .el-color-picker__color-inner{  border-radius: 50px;}
 </style>
