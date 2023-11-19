@@ -5,7 +5,9 @@ import {parseMDL, generateMDL, ModelRenderer, parseMDX, generateMDX} from 'war3-
 import {defineComponent, onMounted, ref} from "vue";
     import * as fs from "fs";
 import {ValueLib} from "../lib/valueLib";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {ElMessage, ElMessageBox, UploadProps} from "element-plus";
+
+let filePath
 
 let model
 let mdxProperty = ref();
@@ -18,35 +20,46 @@ let color = ref()
 
 const clr = ['C0', 'C1', 'C2']
 
-function readMDX(){
 
-    const filePath = '/Users/stan/Desktop/暗影/暗影 暗影尖刺/[TX][JN]AY-AYJC.mdx';
-
-    fs.readFile(filePath, (err, data) => {
-        if (err) {
-            console.error(err);
-            return;
-        }
-        model = parseMDX(data.buffer)
-        console.log(model)
-        let res = []
-        let idx = -1
-        for (let i of model.Nodes) {
-            idx++
-            if ('SegmentColor' in i) {
-                res.push({
-                    "idx": idx,
-                    "Name": i.Name,
-                    "C0": ValueLib.colorFA2Rgba(i.SegmentColor[0], i.Alpha[0]),
-                    "C1": ValueLib.colorFA2Rgba(i.SegmentColor[1], i.Alpha[1]),
-                    "C2": ValueLib.colorFA2Rgba(i.SegmentColor[2], i.Alpha[2]),
-                })
-                idxMapper[idx] = res.length -1
+const fileDir = () => {
+    let arr = filePath.split('/')
+    arr.pop()
+    return arr.join('/')
+}
+const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
+    filePath = rawFile.path
+    console.log(filePath)
+    function readMDX(){
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                console.error(err);
+                return;
             }
-        }
-        mdxProperty.value = res
-    })
+            model = parseMDX(data.buffer)
+            console.log(model)
+            let res = []
+            let idx = -1
+            for (let i of model.Nodes) {
+                idx++
+                if ('SegmentColor' in i) {
+                    res.push({
+                        "idx": idx,
+                        "Name": i.Name,
+                        "C0": ValueLib.colorFA2Rgba(i.SegmentColor[0], i.Alpha[0]),
+                        "C1": ValueLib.colorFA2Rgba(i.SegmentColor[1], i.Alpha[1]),
+                        "C2": ValueLib.colorFA2Rgba(i.SegmentColor[2], i.Alpha[2]),
+                    })
+                    idxMapper[idx] = res.length -1
+                }
+            }
+            mdxProperty.value = res
+        })
 
+    }
+
+    readMDX()
+
+    return false
 }
 
 const onClick = () => {
@@ -60,7 +73,7 @@ const onClick = () => {
         node.Alpha = [rgba0.a, rgba1.a, rgba2.a]
     }
     let res = generateMDX(model)
-    fs.writeFile('/Users/stan/Desktop/暗影/暗影 暗影尖刺/res.mdx', Buffer.from(res), (err) => {
+    fs.writeFile(filePath + 'res.mdx', Buffer.from(res), (err) => {
         if (err) {
             console.error(err);
             return;
@@ -126,7 +139,16 @@ const confirm = () => {
         <el-button @click="batchEdit">批量修改</el-button>
         <el-button @click="onClick">导出模型</el-button>
     </div>
-    <button @click="readMDX" v-else>读取模型</button>
+    <el-upload :before-upload="handleUpload" drag v-else>
+        <div class="el-upload__text">
+            拖入文件 或者 <em>点击选择</em>
+        </div>
+        <template #tip>
+            <div class="el-upload__tip">
+                目前仅支持MDX格式
+            </div>
+        </template>
+    </el-upload>
 
     <el-dialog title="批量修改" v-model="openDialog" fullscreen>
         <el-radio-group v-model="radio">
