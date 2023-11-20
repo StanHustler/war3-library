@@ -37,6 +37,8 @@
   },
   "dependencies": {
     "element-plus": "^2.4.2",
+    "image-in-browser": "^2.1.1",
+    "tga": "^1.0.7",
     "vue-router": "^4.2.5",
     "war3-model": "^3.0.0"
   }

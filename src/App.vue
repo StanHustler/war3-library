@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue'
-import ViewLoader from "./components/ColorChanger.vue";
+import ColorChanger from "./components/ColorChanger.vue";
+import TgaChanger from "./components/TgaChanger.vue";
 </script>
 
 <template>
-    <ViewLoader/>
+<!--    <ColorChanger />-->
+    <TgaChanger />
 </template>
 
 <style>
