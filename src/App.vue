@@ -2,11 +2,15 @@
 import HelloWorld from './components/HelloWorld.vue'
 import ColorChanger from "./components/ColorChanger.vue";
 import TgaChanger from "./components/TgaChanger.vue";
+import ModelLoader from "./components/ModelLoader.vue";
 </script>
 
 <template>
+
+<!--    <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />-->
 <!--    <ColorChanger />-->
-    <TgaChanger />
+<!--    <TgaChanger />-->
+    <ModelLoader />
 </template>
 
 <style>
