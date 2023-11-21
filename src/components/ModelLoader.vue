@@ -1,7 +1,8 @@
 <script setup lang="ts">
     import fs from "fs";
-    import {ModelRenderer, parseMDX} from "war3-model";
+    import {decodeBLP, ModelRenderer, parseMDX, getBLPImageData} from "war3-model";
     import { vec3, mat4, quat } from 'gl-matrix';
+
 
     let model;
     let modelRenderer: ModelRenderer;
@@ -26,7 +27,9 @@
     const cameraUp: vec3 = vec3.fromValues(0, 0, 1);
     const cameraQuat: quat = quat.create();
 
-    fs.readFile("/Users/stan/Desktop/暗影/test/[TX][JN]AY-SWXW.mdx", (err, data) => {
+
+    let dir = "/Users/stan/Desktop/暗影/test/"
+    fs.readFile(dir + "[TX][JN]AY-SWXW.mdx", (err, data) => {
         if (err) {
             console.error(err);
             return;
@@ -40,14 +43,27 @@
         modelRenderer = new ModelRenderer(model);
         console.log(modelRenderer)
         modelRenderer.setTeamColor(parseColor('#FF0000'));
+        modelRenderer.setSequence(0);
         initGL()
         modelRenderer.initGL(gl);
 
         for (let i of model.Textures){
             if (i.Image){
-                loadTexture("/src/assets/empty.png", i.Image, 0)
+                console.log("texture: " + i.Image)
+                try {
+                    let texture = fs.readFileSync(dir + i.Image)
+                    const blp = decodeBLP(texture.buffer)
+                    modelRenderer.setTextureImageData(
+                        i.Image,
+                        blp.mipmaps.map((_mipmap, i) => getBLPImageData(blp, i)),
+                        0)
+
+                } catch (e) {
+                    loadTexture("/src/assets/empty.png", i.Image, 0)
+                }
             }
         }
+        console.log(modelRenderer)
 
         modelRenderer.setCamera(cameraPos, cameraQuat);
         modelRenderer.render(mvMatrix, pMatrix, {wireframe: false});
@@ -93,10 +109,10 @@
 
     function loadTexture(src: string, textureName: string, flags) {
         const img = new Image();
+        console.log(src)
 
         img.onload = () => {
             modelRenderer.setTextureImage(textureName, img, flags);
-
             handleLoadedTexture();
         };
         img.src = src;
