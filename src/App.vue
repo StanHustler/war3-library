@@ -3,6 +3,24 @@ import HelloWorld from './components/HelloWorld.vue'
 import ColorChanger from "./components/ColorChanger.vue";
 import TgaChanger from "./components/TgaChanger.vue";
 import ModelLoader from "./components/ModelLoader.vue";
+import {onMounted, ref} from "vue";
+
+let file = ref(null);
+
+onMounted(()=>{
+    window.addEventListener("drop", (e)=>{
+        e.preventDefault()
+        let f = e.dataTransfer.files[0]
+        file.value = {
+            fileName: f.name,
+            fileDir: f.path.slice(0,f.path.length - f.name.length)
+        }
+        console.log(file)
+    })
+    window.addEventListener("dragover",(e)=>{
+        e.preventDefault()
+    })
+})
 </script>
 
 <template>
@@ -10,7 +28,14 @@ import ModelLoader from "./components/ModelLoader.vue";
 <!--    <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />-->
 <!--    <ColorChanger />-->
 <!--    <TgaChanger />-->
-    <ModelLoader />
+<!--    <ModelLoader />-->
+    <el-watermark content="绘未科技" v-if="file===null">
+        <div style="height: 500px;">
+            <p>拖入文件</p>
+        </div>
+    </el-watermark >
+
+    <ColorChanger :file-dir="file.fileDir" :file-name="file.fileName" v-else/>
 </template>
 
 <style>

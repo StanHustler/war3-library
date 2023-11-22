@@ -2,13 +2,12 @@
 import {parseMDL, generateMDL, ModelRenderer, parseMDX, generateMDX} from 'war3-model';
 
 
-import {defineComponent, onMounted, ref} from "vue";
+import {defineComponent, onMounted, onUpdated, ref, watch} from "vue";
     import * as fs from "fs";
 import {ValueLib} from "../lib/valueLib";
 import {ElMessage, ElMessageBox, UploadProps} from "element-plus";
 
-let filePath
-let fileDir
+const props = defineProps(['fileDir','fileName'])
 
 let model
 let nodeProperty = ref();
@@ -23,49 +22,45 @@ let groupProperty = ref()
 let color = ref()
 
 const clr = ['C0', 'C1', 'C2']
-
-const handleUpload: UploadProps['beforeUpload'] = (rawFile) => {
-    filePath = rawFile.path
-    fileDir = filePath.slice(0,filePath.length - rawFile.name.length)
-    function readMDX(){
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                console.error(err);
-                return;
+function readMDX(){
+    console.log("reading")
+    fs.readFile(props.fileDir + props.fileName, (err, data) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        model = parseMDX(data.buffer)
+        console.log(model)
+        let res = []
+        let idx = -1
+        for (let i of model.Nodes) {
+            idx++
+            if ('SegmentColor' in i) {
+                res.push({
+                    "idx": idx,
+                    "Name": i.Name,
+                    "C0": ValueLib.colorFA2Rgb(i.SegmentColor[0]),
+                    "C1": ValueLib.colorFA2Rgb(i.SegmentColor[1]),
+                    "C2": ValueLib.colorFA2Rgb(i.SegmentColor[2]),
+                })
+                idxMapper[idx] = res.length -1
             }
-            model = parseMDX(data.buffer)
-            console.log(model)
-            let res = []
-            let idx = -1
-            for (let i of model.Nodes) {
-                idx++
-                if ('SegmentColor' in i) {
-                    res.push({
-                        "idx": idx,
-                        "Name": i.Name,
-                        "C0": ValueLib.colorFA2Rgb(i.SegmentColor[0]),
-                        "C1": ValueLib.colorFA2Rgb(i.SegmentColor[1]),
-                        "C2": ValueLib.colorFA2Rgb(i.SegmentColor[2]),
-                    })
-                    idxMapper[idx] = res.length -1
-                }
+        }
+        nodeProperty.value = res
+        idx = 0
+        geoProperty.value = model.GeosetAnims.map((row)=>{
+            return {
+                "idx": idx++,
+                "Color" : ValueLib.colorFA2Rgb(row.Color),
             }
-            nodeProperty.value = res
-            idx = 0
-            geoProperty.value = model.GeosetAnims.map((row)=>{
-                return {
-                    "idx": idx++,
-                    "Color" : ValueLib.colorFA2Rgb(row.Color),
-                }
-            })
         })
+    })
 
-    }
-
-    readMDX()
-
-    return false
 }
+
+onMounted(()=>{
+    readMDX()
+})
 
 const onClick = () => {
     for (let i of nodeProperty.value) {
@@ -81,7 +76,7 @@ const onClick = () => {
     }
 
     let res = generateMDX(model)
-    fs.writeFile(fileDir + 'res.mdx', Buffer.from(res), (err) => {
+    fs.writeFile(props.fileDir + 'res.mdx', Buffer.from(res), (err) => {
         if (err) {
             console.error(err);
             return;
@@ -137,10 +132,15 @@ const confirm = () => {
     openDialog.value=false
 }
 
+watch(props,(e)=>{
+    readMDX()
+})
+
 </script>
 
 <template>
-    <div  v-if="nodeProperty">
+    <div>
+        {{props.fileName}}
 
         <el-radio-group v-model="pageSelect">
             <el-radio-button label="0"> 模型节点颜色管理 </el-radio-button>
@@ -174,16 +174,6 @@ const confirm = () => {
         <el-button @click="batchEdit">批量修改</el-button>
         <el-button @click="onClick">导出模型</el-button>
     </div>
-    <el-upload :before-upload="handleUpload" drag v-else>
-        <div class="el-upload__text" style="height: 300px;display: flex;justify-content:center;align-items:center;">
-            拖入文件 或者 <em>点击选择</em>
-        </div>
-        <template #tip>
-            <div class="el-upload__tip">
-                目前仅支持MDX格式
-            </div>
-        </template>
-    </el-upload>
 
     <el-dialog title="批量修改" v-model="openDialog" fullscreen>
         <div v-for="(item, index) in groupProperty" :key="index">
