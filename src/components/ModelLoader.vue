@@ -47,23 +47,26 @@
         initGL()
         modelRenderer.initGL(gl);
 
+
         for (let i of model.Textures){
             if (i.Image){
                 console.log("texture: " + i.Image)
-                try {
-                    let texture = fs.readFileSync(dir + i.Image)
-                    const blp = decodeBLP(texture.buffer)
+                fs.readFile(dir + i.Image, (err, data) => {
+                    if (err) {
+                        loadTexture("/src/assets/empty.png", i.Image, 0)
+                        // console.error(err);
+                        return;
+                    }
+                    const blp = decodeBLP(data.buffer)
                     modelRenderer.setTextureImageData(
                         i.Image,
                         blp.mipmaps.map((_mipmap, i) => getBLPImageData(blp, i)),
                         0)
+                })
 
-                } catch (e) {
-                    loadTexture("/src/assets/empty.png", i.Image, 0)
-                }
+
             }
         }
-        console.log(modelRenderer)
 
         modelRenderer.setCamera(cameraPos, cameraQuat);
         modelRenderer.render(mvMatrix, pMatrix, {wireframe: false});
@@ -109,7 +112,6 @@
 
     function loadTexture(src: string, textureName: string, flags) {
         const img = new Image();
-        console.log(src)
 
         img.onload = () => {
             modelRenderer.setTextureImage(textureName, img, flags);
