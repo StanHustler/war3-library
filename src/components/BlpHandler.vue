@@ -7,42 +7,59 @@ const props = defineProps(['fileDir','fileName'])
 const { execFile } = require('node:child_process');
 
 let btn_goPS = ref(false)
-
+let box
 onMounted(() => {
+    box = document.getElementById("msg")
+    // ipcRenderer.send('get-setting', 'BLPconv')
+    // ipcRenderer.on('get-setting-reply', (event, args)=>{
+    //     console.log(args)
+    // })
 
-    ipcRenderer.send('get-setting')
-    ipcRenderer.on('get-setting-reply', (event, args)=>{
-        console.log(event,args)
-    })
+    goConv(props.fileDir + props.fileName)
+    goPS()
+})
 
-    const msgbox = document.getElementById("msg")
+const goPS = () => {0
+    const psPath = "C:\\Program Files\\Adobe\\Adobe Photoshop CC 2015.5\\Photoshop.exe"
+    execFile(psPath,[props.fileDir + props.fileName.slice(0,-3)+"TGA"])
+}
+
+const goConv = (filepath) =>{
     const exePath = "C:\\Users\\cf260\\Desktop\\TGA\\青龙之心特效\\war3\\BLPconv.exe"
-    execFile(exePath, [  props.fileDir + props.fileName], (error, stdout, stderr)=>{
+    execFile(exePath, [filepath], (error, stdout, stderr)=>{
         fs.readdir(props.fileDir, (er, files)=>{
             if (er) {
-                msgbox.innerText = er.toString()
+                box.innerText += er.toString()
                 return
             }
             if (files.indexOf(props.fileName.slice(0,-3)+"TGA") === -1){
-                msgbox.innerText = stderr.toString()
+                box.innerText += stderr.toString()
 
             } else {
-                msgbox.innerText = "转换成功"
+                box.innerText += "转换成功"
                 btn_goPS.value=true
             }
         })
     })
-})
-
-const goPS = () => {
-
 }
+
+const bak = () =>{
+
+    fs.stat(props.fileDir + "bak", (e)=>{
+        if (e){
+            fs.mkdirSync(props.fileDir + "bak")
+        }
+        fs.copyFileSync(props.fileDir + props.fileName, props.fileDir+ 'bak\\' + props.fileName)
+    })
+}
+
+
 
 </script>
 
 <template>
     <div id="msg"/>
-    <el-button v-if="btn_goPS"> 前往PS </el-button>
+    <el-button v-if="btn_goPS" @click="goConv(props.fileDir + props.fileName.slice(0,-3)+'TGA')"> 已完成PS </el-button>
 </template>
 
 <style scoped>
