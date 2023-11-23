@@ -61,7 +61,7 @@
                     modelRenderer.setTextureImageData(
                         i.Image,
                         blp.mipmaps.map((_mipmap, i) => getBLPImageData(blp, i)),
-                        0)
+                        1|2)
                 })
 
 

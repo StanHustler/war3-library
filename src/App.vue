@@ -6,11 +6,11 @@ import ModelLoader from "./components/ModelLoader.vue";
 import {onMounted, ref} from "vue";
 import BlpHandler from "./components/BlpHandler.vue";
 
-// let file = ref(null);
-let file = ref({
-    fileName : "[TX][SYW]QLZX-1.blp",
-    fileDir : "C:\\Users\\cf260\\Desktop\\TGA\\青龙之心特效\\war3\\"
-})
+let file = ref(null);
+// let file = ref({
+//     fileName : "[TX][SYW]QLZX-1.blp",
+//     fileDir : "C:\\Users\\cf260\\Desktop\\TGA\\青龙之心特效\\war3\\"
+// })
 
 onMounted(()=>{
     window.addEventListener("drop", (e)=>{
@@ -41,6 +41,7 @@ const checkType = (type)=>{
     <el-watermark content="绘未科技" v-if="file===null">
         <div style="height: 500px;">
             <p>拖入文件</p>
+            <p>支持MDX，BLP文件</p>
         </div>
     </el-watermark >
 

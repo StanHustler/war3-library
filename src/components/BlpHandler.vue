@@ -1,4 +1,4 @@
-<script setup>
+<script lang="ts" setup>
 import fs from "fs";
 import {onMounted, ref} from "vue";
 import {ipcRenderer} from "electron";
@@ -14,28 +14,40 @@ const dialogVisible = ref(true)
 onMounted(() => {
     box = document.getElementById("msg")
 
-    getSetting('converter')
-    getSetting('photoshop')
-    // goBak()
-    // goConv(props.fileDir + props.fileName)
-    // goPS()
+    getSetting().then(()=>{
+        if (setting.value.photoshop && setting.value.converter){
+            dialogVisible.value= false
+            init()
+        }
+    })
+
 })
 
-const getSetting = async (arg) => {
-    await ipcRenderer.send('get-setting', arg)
-    await ipcRenderer.on('get-setting-reply', (event, args) => {
-        console.log(arg ,args)
-        setting.value[arg] = args
-    })
+const init = () =>{
+    goBak()
+    goConv(props.fileDir + props.fileName)
+    goPS()
+}
+
+const getSetting = async () => {
+    setting.value.converter = await ipcRenderer.invoke('setting', ['get',"converter"])
+    setting.value.photoshop = await ipcRenderer.invoke('setting', ['get',"photoshop"])
+}
+
+const setSetting = async () => {
+    await ipcRenderer.invoke('setting', ['set', "converter", setting.value.converter])
+    await ipcRenderer.invoke('setting', ['set', "photoshop", setting.value.photoshop])
+    dialogVisible.value = false
+    init()
 }
 
 const goPS = () => {
-    const psPath = "C:\\Program Files\\Adobe\\Adobe Photoshop CC 2015.5\\Photoshop.exe"
+    const psPath = setting.value.photoshop
     execFile(psPath, [props.fileDir + props.fileName.slice(0, -3) + "TGA"])
 }
 
 const goConv = (filepath) => {
-    const exePath = "C:\\Users\\cf260\\Desktop\\TGA\\青龙之心特效\\war3\\BLPconv.exe"
+    const exePath = setting.value.converter
     execFile(exePath, [filepath], (error, stdout, stderr) => {
         fs.readdir(props.fileDir, (er, files) => {
             if (er) {
@@ -67,8 +79,10 @@ const goBak = () => {
 </script>
 
 <template>
+    {{setting}}
     <div id="msg"/>
     <el-button v-if="btn_goPS" @click="goConv(props.fileDir + props.fileName.slice(0,-3)+'TGA')"> 已完成PS</el-button>
+    <el-button @click="dialogVisible = true"> 打开设置 </el-button>
 
     <el-dialog
             v-model="dialogVisible"
@@ -92,7 +106,7 @@ const goBak = () => {
         <template #footer>
             <span class="dialog-footer">
                 <el-button @click="dialogVisible = false">Cancel</el-button>
-                <el-button type="primary" @click="dialogVisible = false">
+                <el-button type="primary" @click="setSetting">
                 Confirm
                 </el-button>
             </span>

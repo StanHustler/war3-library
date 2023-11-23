@@ -76,6 +76,12 @@ async function createWindow() {
     return { action: 'deny' }
   })
   // win.webContents.on('will-navigate', (event, url) => { }) #344
+
+  ipcMain.handle('setting', (event, args)=>{
+    if (args[0]==='get') return store.get('setting:'+args)
+    else if (args[0]==='set') return store.set(args[1],args[2])
+    else store.clear()
+  })
 }
 
 app.whenReady().then(createWindow)
@@ -117,9 +123,4 @@ ipcMain.handle('open-win', (_, arg) => {
   } else {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
-})
-
-ipcMain.on('get-setting', (_,arg)=>{
-  // _.reply('get-setting-reply', store.get('setting.'+ arg))
-  _.reply('get-setting-reply', store.path)
 })
