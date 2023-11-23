@@ -78,9 +78,13 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 
   ipcMain.handle('setting', (event, args)=>{
-    if (args[0]==='get') return store.get('setting:'+args)
-    else if (args[0]==='set') return store.set(args[1],args[2])
-    else store.clear()
+    if (args[0]==='get') {
+      return store.get('setting:' + args[1])
+    }
+    else if (args[0]==='set') {
+      return store.set('setting:'+ args[1], args[2])
+    }
+    else return store.path
   })
 }
 

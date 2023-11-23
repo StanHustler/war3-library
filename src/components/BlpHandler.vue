@@ -15,6 +15,7 @@ onMounted(() => {
     box = document.getElementById("msg")
 
     getSetting().then(()=>{
+        console.log(setting.value)
         if (setting.value.photoshop && setting.value.converter){
             dialogVisible.value= false
             init()
@@ -79,7 +80,6 @@ const goBak = () => {
 </script>
 
 <template>
-    {{setting}}
     <div id="msg"/>
     <el-button v-if="btn_goPS" @click="goConv(props.fileDir + props.fileName.slice(0,-3)+'TGA')"> 已完成PS</el-button>
     <el-button @click="dialogVisible = true"> 打开设置 </el-button>
