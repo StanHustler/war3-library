@@ -120,5 +120,6 @@ ipcMain.handle('open-win', (_, arg) => {
 })
 
 ipcMain.on('get-setting', (_,arg)=>{
-  _.reply('get-setting-reply', store.get(arg))
+  // _.reply('get-setting-reply', store.get('setting.'+ arg))
+  _.reply('get-setting-reply', store.path)
 })
