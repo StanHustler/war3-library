@@ -1,3 +1,6 @@
+import {ipcRenderer} from "electron";
+import contextBridge = Electron.contextBridge;
+
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {

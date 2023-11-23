@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell, ipcMain,Menu } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
+import Store from "electron-store";
+const store = new Store()
 
 // The built directory structure
 //
@@ -41,7 +43,7 @@ const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
-  Menu.setApplicationMenu(null)
+  // Menu.setApplicationMenu(null)
   win = new BrowserWindow({
     title: 'Main window',
     icon: join(process.env.VITE_PUBLIC, 'favicon.ico'),
@@ -115,4 +117,8 @@ ipcMain.handle('open-win', (_, arg) => {
   } else {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
+})
+
+ipcMain.on('get-setting', (_,arg)=>{
+  _.reply('get-setting-reply', store.path)
 })
