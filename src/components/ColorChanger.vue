@@ -132,6 +132,40 @@ const confirm = () => {
     openDialog.value=false
 }
 
+const organizeMaterial = ()=>{
+
+    let idx = 0
+
+    model.Textures.map((m,i)=>{
+        // return [m.Image , rename(m.Image)]
+        if (m.Image.indexOf('\\') == -1 || m.Image.indexOf('Textures') ==0) return
+
+        const [path, name] = m.Image.split('\\')
+        const newName =  props.fileName.split('.')[0] + '-' + ++idx + '.' + name.split('.')[1]
+
+        fs.stat(props.fileDir + m.Image, (err, stats) =>{
+            if (err) return
+            fs.rename(props.fileDir + m.Image, props.fileDir + newName, cb=>{
+                model.Textures[i].Image = newName
+
+                let p = fs.readdirSync(props.fileDir + path);
+                if (p && p.length==0) {
+                    fs.rmdirSync(props.fileDir + path)
+                }
+            })
+        })
+    })
+
+    fs.writeFile(props.fileDir + props.fileName, Buffer.from(generateMDX(model)),(cb)=>{
+        readMDX()
+    })
+
+    ElMessage({
+        message: "整理完成",
+        type: 'success',
+    })
+}
+
 watch(props,(e)=>{
     readMDX()
 })
@@ -171,6 +205,7 @@ watch(props,(e)=>{
             </el-table-column>
         </el-table>
 
+        <el-button @click="organizeMaterial" type="warning">整理贴图</el-button>
         <el-button @click="batchEdit">批量修改</el-button>
         <el-button @click="onClick">导出模型</el-button>
     </div>
