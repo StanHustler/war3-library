@@ -136,29 +136,24 @@ const organizeMaterial = ()=>{
 
     let idx = 0
 
-    model.Textures.map((m,i)=>{
-        // return [m.Image , rename(m.Image)]
-        if (m.Image.indexOf('\\') == -1 || m.Image.indexOf('Textures') ==0) return
+    model.Textures.map((m, i) => {
+        if (m.Image.indexOf('\\') == -1 || m.Image.indexOf('Textures') == 0) return
 
         const [path, name] = m.Image.split('\\')
-        const newName =  props.fileName.split('.')[0] + '-' + ++idx + '.' + name.split('.')[1]
+        const newName = props.fileName.split('.')[0] + '-' + ++idx + '.' + name.split('.')[1]
 
-        fs.stat(props.fileDir + m.Image, (err, stats) =>{
-            if (err) return
-            fs.rename(props.fileDir + m.Image, props.fileDir + newName, cb=>{
-                model.Textures[i].Image = newName
+        const pathStat = fs.statSync(props.fileDir + m.Image)
+        fs.renameSync(props.fileDir + m.Image, props.fileDir + newName)
 
-                let p = fs.readdirSync(props.fileDir + path);
-                if (p && p.length==0) {
-                    fs.rmdirSync(props.fileDir + path)
-                }
-            })
-        })
+        model.Textures[i].Image = newName
+        console.log(model.Textures[i].Image)
+
+        let p = fs.readdirSync(props.fileDir + path);
+        if (p && p.length == 0) fs.rmdirSync(props.fileDir + path)
     })
 
-    fs.writeFile(props.fileDir + props.fileName, Buffer.from(generateMDX(model)),(cb)=>{
-        readMDX()
-    })
+    fs.writeFileSync(props.fileDir + props.fileName, Buffer.from(generateMDX(model)))
+    readMDX()
 
     ElMessage({
         message: "整理完成",
