@@ -1,7 +1,8 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
 import fs from 'node:fs'
-import {decodePng, encodeTga, Transform} from "image-in-browser";
+import {decodePng, encodePng, encodeTga, Transform} from "image-in-browser";
+import {ElMessage} from "element-plus";
 
 const props = defineProps(['fileDir', 'fileName'])
 const inputPixels= ref({w:64,h:64})
@@ -34,11 +35,10 @@ const onHandle = () => {
     bgData = Transform.copyResize({image: bgData, width: inputPixels.value.w, height: inputPixels.value.h})
 
     let dir = fs.readdirSync(inputPath.value)
-    if (dir.indexOf('blp')===-1) fs.mkdirSync(inputPath.value + "\\blp")
+    if (dir.indexOf('0png')===-1) fs.mkdirSync(inputPath.value + "\\0png")
     dir.map((name)=>{
-        if (name.toLowerCase().indexOf('png')===-1)return
+        if (name.toLowerCase().indexOf('0png')!==-1)return
         let fileData = decodePng({data: fs.readFileSync(inputPath.value + '\\' + name)})
-        console.log(inputPath.value + '\\' + name)
         fileData = Transform.copyResize({image: fileData, width: inputPixels.value.w, height: inputPixels.value.h})
 
         for (let i= 0; i< bgData.data.data.length; i+=4 ){
@@ -57,10 +57,15 @@ const onHandle = () => {
             fileData.data.data[i+3]=a;
         }
 
-        fs.writeFileSync(inputPath.value + "\\blp\\" + name.split('.')[0]+ '.tga', encodeTga({image:fileData}))
+        fs.writeFileSync(inputPath.value + "\\0png\\" + name.split('.')[0]+ '.png', encodePng({image:fileData}))
         renderCvs(fileData)
+
     })
 
+    ElMessage({
+        message: "叠图完成，请在【文件夹\\0png】中查看",
+        type: 'success',
+    })
 }
 
 </script>
