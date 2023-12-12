@@ -36,25 +36,32 @@ const onHandle = () => {
 
     let dir = fs.readdirSync(inputPath.value)
     if (dir.indexOf('0png')===-1) fs.mkdirSync(inputPath.value + "\\0png")
+
+
+    let dic = {}
+    for (let i= 0; i< bgData.data.data.length; i+=4 ) {
+        let [r, g, b, a] = [
+            bgData.data.data[i],
+            bgData.data.data[i + 1],
+            bgData.data.data[i + 2],
+            bgData.data.data[i + 3],
+        ]
+        if (r===255 && g===255 && b===255 && a===0) continue
+        dic[i]= r
+        dic[i + 1]= g
+        dic[i + 2]= b
+        dic[i + 3]= a
+    }
+
     dir.map((name)=>{
         if (name.toLowerCase().indexOf('0png')!==-1)return
         let fileData = decodePng({data: fs.readFileSync(inputPath.value + '\\' + name)})
         fileData = Transform.copyResize({image: fileData, width: inputPixels.value.w, height: inputPixels.value.h})
 
-        for (let i= 0; i< bgData.data.data.length; i+=4 ){
-            let [r,g,b,a] = [
-                bgData.data.data[i],
-                bgData.data.data[i+1],
-                bgData.data.data[i+2],
-                bgData.data.data[i+3],
-            ]
-
-            // if ([r,g,b,a] === [255,255,255,0])continue
-            if (r===255 && g===255 && b===255 && a===0) continue
-            fileData.data.data[i]=r;
-            fileData.data.data[i+1]=g;
-            fileData.data.data[i+2]=b;
-            fileData.data.data[i+3]=a;
+        for (let i= 0; i< fileData.data.data.length; i+=4 ){
+            for (let j=0;j<4;j++){
+                if (dic[i+j])  fileData.data.data[i+j] = dic[i+j];
+            }
         }
 
         fs.writeFileSync(inputPath.value + "\\0png\\" + name.split('.')[0]+ '.png', encodePng({image:fileData}))
