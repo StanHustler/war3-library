@@ -137,9 +137,14 @@ const organizeMaterial = ()=>{
     let idx = 0
 
     model.Textures.map((m, i) => {
-        if (m.Image.indexOf('\\') == -1 || m.Image.indexOf('Textures') == 0) return
+        let path, name
+        if ( m.Image.indexOf('Textures') == 0) return
+        if (m.Image.indexOf('\\') == -1) {
+            [path, name] = ['',m.Image]
+        }else {
+            [path, name] = m.Image.split('\\')
+        }
 
-        const [path, name] = m.Image.split('\\')
         const newName = props.fileName.split('.')[0] + '-' + ++idx + '.' + name.split('.')[1]
 
         const pathStat = fs.statSync(props.fileDir + m.Image)
