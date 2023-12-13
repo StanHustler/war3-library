@@ -58,6 +58,10 @@ const onHandle = () => {
         let fileData = decodePng({data: fs.readFileSync(inputPath.value + '\\' + name)})
         fileData = Transform.copyResize({image: fileData, width: inputPixels.value.w, height: inputPixels.value.h})
 
+        if (!fileData.hasAlpha) {
+            fileData = fileData.convert({numChannels: 4})
+        }
+
         for (let i= 0; i< fileData.data.data.length; i+=4 ){
             for (let j=0;j<4;j++){
                 if (dic[i+j])  fileData.data.data[i+j] = dic[i+j];
