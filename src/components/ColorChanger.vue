@@ -134,6 +134,15 @@ const confirm = () => {
 
 const organizeMaterial = ()=>{
 
+    if (new RegExp('[\u4e00-\u9fa5]').test(props.fileName)) {
+        ElMessage({
+            message: "文件名包含中文",
+            type: 'error',
+        })
+        
+        return
+    }
+
     let idx = 0
 
     model.Textures.map((m, i) => {
