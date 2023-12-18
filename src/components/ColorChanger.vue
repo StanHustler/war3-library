@@ -145,9 +145,14 @@ const organizeMaterial = ()=>{
 
     let idx = 0
 
+    const checkTexture = (m) => {
+        if (typeof m.s === "string" && m.s.length>0 && m.s.indexOf('.')!==-1) return true
+        return m.ReplaceableId !== 0;
+    }
+
     model.Textures.map((m, i) => {
         let path, name
-        if ( m.Image.indexOf('Textures') == 0) return
+        if (m.Image.indexOf('Textures') == 0 || checkTexture(m)) return
         if (m.Image.indexOf('\\') == -1) {
             [path, name] = ['',m.Image]
         }else {
